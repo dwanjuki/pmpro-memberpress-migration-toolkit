@@ -278,7 +278,7 @@ function pmprompmt_page() {
 			));
 
 			// Migrate custom user fields.
-			var_dump($mp_options['custom_fields'] );
+			// TODO: Values for date, checkboxes, checkbox_grouped, and file fields are not stored the same way in PMPro as in MemberPress. We may need a migration script for that user data later.
 			$pmpro_user_field_group = new stdClass();
 			$pmpro_user_field_group->name = __( 'More Information', 'pmpro-memberpress-migration-toolkit' );
 			$pmpro_user_field_group->checkout = 'yes';
@@ -290,16 +290,47 @@ function pmprompmt_page() {
 				$field = new stdClass();
 				$field->name = $cf['field_key'];
 				$field->label = $cf['field_name'];
-				$field->type = 'text'; // TODO: Map other field types.
+				switch ( $cf['field_type'] ) {
+					case 'date':
+						$field->type = 'date';
+						break;
+					case 'textarea':
+						$field->type = 'textarea';
+						break;
+					case 'dropdown':
+						$field->type = 'select';
+						break;
+					case 'multiselect':
+						$field->type = 'select2';
+						break;
+					case 'checkbox':
+						$field->type = 'checkbox';
+						break;
+					case 'radios':
+						$field->type = 'radio';
+						break;
+					case 'checkboxes':
+						$field->type = 'checkbox_grouped';
+						break;
+					case 'file':
+						$field->type = 'file';
+						break;
+					default:
+						$field->type = 'text';
+						break;
+				}
 				$field->required = empty( $cf['required'] ) ? 'no' : 'yes';
 				$field->readonly = 'no';
 				$field->profile = empty( $cf['show_in_account'] ) ? 'admins' : 'yes'; // Note: We don't have great control over showing the field at checkout. If we ever do, we can update this.
 				$field->wrapper_class = '';
 				$field->element_class = '';
 				$field->hint = '';
-				$field->options = ''; // TODO: Handle options for select, radio, checkbox fields.
+				$field->options = '';
 				if ( ! empty( $cf['options'] ) ) {
-					
+					foreach ( $cf['options'] as $option_arr ) {
+						$field->options .= $option_arr['option_value'] . ':' . $option_arr['option_name']  . "\n";
+					}
+					$field->options = trim( $field->options );
 				}
 				$pmpro_user_field_group->fields[] = $field;
 			}

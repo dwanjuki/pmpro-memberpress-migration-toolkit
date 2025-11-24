@@ -24,8 +24,8 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 	 * @return string The status of the step. Possible values: 'not_started', 'in_progress', 'completed'.
 	 */
 	static public function get_step_status() {
-		// Check if the business address has been explicitly set. If so, we'll assume that other settings have been migrated.
-		return empty( get_option( 'pmpro_business_address' ) ) ? 'not_started' : 'completed';
+		// Check if the account page has been explicitly set. If so, we'll assume that other settings have been migrated.
+		return empty( get_option( 'pmpro_account_page_id' ) ) ? 'not_started' : 'completed';
 	}
 
 	/**

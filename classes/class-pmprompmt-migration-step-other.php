@@ -108,6 +108,8 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 		$pmpro_user_field_group->levels = array();
 		$pmpro_user_field_group->fields = array();
 		foreach( $mp_options['custom_fields'] as $cf ) {
+			$cf = (array) $cf; // Make sure that we have an array and not an object.
+
 			$field = new stdClass();
 			$field->name = $cf['field_key'];
 			$field->label = $cf['field_name'];
@@ -149,6 +151,7 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 			$field->options = '';
 			if ( ! empty( $cf['options'] ) ) {
 				foreach ( $cf['options'] as $option_arr ) {
+					$option_arr = (array) $option_arr; // Make sure that we have an array and not an object.
 					$field->options .= $option_arr['option_value'] . ':' . $option_arr['option_name']  . "\n";
 				}
 				$field->options = trim( $field->options );

@@ -17,7 +17,7 @@ Domain Path: /languages
  */
 function pmprompmt_menu() {
 	add_submenu_page(
-		'pmpro-membershiplevels',
+		'pmpro-dashboard',
 		'MemberPress Migration Toolkit',
 		'MemberPress Migration Toolkit',
 		'manage_options',

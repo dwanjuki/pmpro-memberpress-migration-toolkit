@@ -42,6 +42,16 @@ class PMProMPMT_Migration_Step_License extends PMProMPMT_Migration_Step {
 	static public function display_step_body() {
 		?>
 		<p><?php esc_html_e( 'To install premium Add Ons and receive support for the MemberPress Migration Toolkit, please enter your Paid Memberships Pro license key below.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+
+		<h4><?php esc_html_e( 'About This Step', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<p><?php esc_html_e( 'This is not a data migration step. Activating your PMPro license allows you to:', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+		<ul>
+			<li><?php esc_html_e( 'Install premium PMPro Add Ons that may replace MemberPress features not covered by this migration', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Receive priority support during and after your migration', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Access automatic updates for all premium Add Ons', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+		</ul>
+		<p><?php esc_html_e( 'If you do not have a license key, you can skip this step and continue with the migration.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+
 		<input type="text" name="pmpro_memberpress_migration_toolkit_license_key" value="<?php echo esc_attr( get_option( 'pmpro_license_key', '' ) ); ?>" class="pmpro-wizard__field-block" />
 		<button class="button button-primary" type="submit"><?php esc_html_e( 'Activate License', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 		<?php

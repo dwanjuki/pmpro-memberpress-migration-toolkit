@@ -63,7 +63,75 @@ class PMProMPMT_Migration_Step_Content_Restrictions extends PMProMPMT_Migration_
 	 */
 	static public function display_step_body() {
 		?>
-		<p><?php esc_html_e( 'Only membership-based content restrictions can be migrated from MemberPress to Paid Memberships Pro. Content restrictions based on other criteria (such as roles, capabilities, or specific users) will need to be set up manually after the migration.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+		<h4><?php esc_html_e( 'What Will Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li><?php esc_html_e( 'Single post and page restrictions (membership-based)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Category-based restrictions', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Parent page restrictions (including child pages)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'All posts/pages restriction rules', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+		</ul>
+
+		<h4><?php esc_html_e( 'What Will NOT Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li>
+				<strong><?php esc_html_e( 'Custom Post Type Restrictions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Custom Post Type Membership Access Add On */
+					esc_html__( 'Use the %s or specific PMPro integrations to restrict custom post types.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/custom-post-type-membership-access/" target="_blank">' . esc_html__( 'Custom Post Type Membership Access Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Drip Content (Time-Based Content Release):', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Series Add On */
+					esc_html__( 'Use the %s to recreate drip content schedules.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/pmpro-series-for-drip-feed-content/" target="_blank">' . esc_html__( 'Series: Drip-Feed Content Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Partial Content Restrictions Within a Post:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'PMPro restricts entire posts by default. Use the [membership] shortcode or Content Visibility block to wrap restricted sections within a post for partial content protection.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Content Expiration Rules:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Time-limited content access based on membership start date is not migrated. Configure using custom code.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Role/Capability-Based Restrictions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Role/capability-based restrictions are not migrated. Configure using custom code.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'User-Specific Restrictions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Individual user access rules must be set up manually or via custom code.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'MemberPress Product Category Restrictions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Product category rules are not migrated. Set up category restrictions in PMPro under Memberships > Settings > Advanced.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Level Group-Based Restrictions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'MemberPress group-based rules must be recreated using PMPro level assignments.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Paywall/Metered Content:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Limit Post Views Add On */
+					esc_html__( 'Use the %s for metered paywall functionality.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/pmpro-limit-post-views/" target="_blank">' . esc_html__( 'Limit Post Views Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+		</ul>
+
+		<h4><?php esc_html_e( 'After Migration', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<p><?php esc_html_e( 'Review your content restrictions by visiting protected pages and verifying access.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+
 		<button class="button button-primary" type="submit"><?php esc_html_e( 'Queue Content Restriction Migrations', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 		<?php
 	}

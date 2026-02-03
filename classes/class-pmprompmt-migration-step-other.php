@@ -42,13 +42,163 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 	 */
 	static public function display_step_body() {
 		?>
-		<p><?php esc_html_e( 'The following PMPro settings will be automatically configured:', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+		<h4><?php esc_html_e( 'What Will Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
 		<ul>
-			<li><?php esc_html_e( 'Membership Pages', 'pmpro-memberpress-migration-toolkit' ); ?></li>
-			<li><?php esc_html_e( 'Payment Currency', 'pmpro-memberpress-migration-toolkit' ); ?></li>
-			<li><?php esc_html_e( 'Business Address', 'pmpro-memberpress-migration-toolkit' ); ?></li>
-			<li><?php esc_html_e( 'User Fields', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li>
+				<strong><?php esc_html_e( 'Membership Pages:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Account, Billing, Cancel, Checkout, Confirmation, Orders, Levels, Login, and Profile pages will be created.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Payment Currency:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Your MemberPress currency setting will be applied to PMPro.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Business Address:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Business name, address, city, state, postal code, and country.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Custom User Field Configuration:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Field names, labels, types, required settings, and options are migrated. Note: MemberPress and PMPro store data for date, checkboxes, checkbox_grouped, and file fields differently. If you are using these field types, this data will require a separate custom migration.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
 		</ul>
+
+		<h4><?php esc_html_e( 'What Will NOT Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li>
+				<strong><?php esc_html_e( 'Email Notifications/Templates:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to PMPro email templates admin page */
+					esc_html__( 'Configure email templates at %s. PMPro includes comprehensive email customization options.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=pmpro-emailtemplates' ) ) . '">' . esc_html__( 'Memberships > Settings > Email Templates', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Coupon/Discount Codes:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to PMPro discount codes admin page */
+					esc_html__( 'Recreate discount codes at %s. PMPro supports percentage and fixed discounts, expiration dates, and usage limits.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=pmpro-discountcodes' ) ) . '">' . esc_html__( 'Memberships > Discount Codes', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Tax/VAT Settings:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to VAT Tax Add On */
+					esc_html__( 'Use the %s for EU VAT compliance, or configure tax rates in your payment gateway settings.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/pmpro-vat-tax/" target="_blank">' . esc_html__( 'VAT Tax Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Anti-Fraud/Card Testing Protection:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to PMPro advanced settings admin page */
+					esc_html__( 'PMPro includes built-in reCAPTCHA support. Configure at %s. For additional protection, use your payment gateway\'s fraud tools.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=pmpro-advancedsettings' ) ) . '">' . esc_html__( 'Memberships > Settings > Advanced', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Design/Branding Settings:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Member Homepages Add On */
+					esc_html__( 'PMPro styling integrates with your theme. Configure at %s or via CSS.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=pmpro-designsettings' ) ) . '">' . esc_html__( 'Settings > Design', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Corporate/Group Memberships:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Group Accounts Add On */
+					esc_html__( 'Use the %s to enable group/corporate membership functionality.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/group-accounts/" target="_blank">' . esc_html__( 'Group Accounts Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Gift Memberships:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Gift Membership Add On */
+					esc_html__( 'Use the %s to enable gifting functionality.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/gift-levels/" target="_blank">' . esc_html__( 'Gift Membership Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Courses:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Courses for Membership Add On */
+					esc_html__( 'Use the %s or integrate with LearnDash, LifterLMS, or Sensei for course content.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/pmpro-courses-lms-integration/" target="_blank">' . esc_html__( 'Courses for Membership Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Reminder/Automation Emails:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Extra Expiration Warning Emails Add On */
+					esc_html__( 'Use the %s for expiration reminders.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/extra-expiration-warning-emails-add-on/" target="_blank">' . esc_html__( 'Extra Expiration Warning Emails Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Two-Factor Authentication:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Use a dedicated WordPress 2FA plugin such as Wordfence, WP 2FA, or Two-Factor.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Social Login:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Link to Social Login Add On */
+					esc_html__( 'Use the %s for social authentication.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="https://www.paidmembershipspro.com/add-ons/social-login-add-on/" target="_blank">' . esc_html__( 'Social Login Add On', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</li>
+		</ul>
+
+		<h4><?php esc_html_e( 'Third-Party Integrations (Not Migrated)', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<p><?php esc_html_e( 'If you were using MemberPress integrations with third-party plugins, you will need to set up the equivalent PMPro Add Ons:', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+		<ul>
+			<li>
+				<strong><?php esc_html_e( 'BuddyPress/BuddyBoss:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<a href="https://www.paidmembershipspro.com/add-ons/buddypress-integration/" target="_blank"><?php esc_html_e( 'BuddyPress and BuddyBoss Integration Add On', 'pmpro-memberpress-migration-toolkit' ); ?></a>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'bbPress:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<a href="https://www.paidmembershipspro.com/add-ons/pmpro-bbpress/" target="_blank"><?php esc_html_e( 'bbPress Integration Add On', 'pmpro-memberpress-migration-toolkit' ); ?></a>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Zapier/Automations:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<a href="https://www.paidmembershipspro.com/add-ons/zapier-integration/" target="_blank"><?php esc_html_e( 'Zapier Integration Add On', 'pmpro-memberpress-migration-toolkit' ); ?></a>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'WooCommerce:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<a href="https://www.paidmembershipspro.com/add-ons/pmpro-woocommerce/" target="_blank"><?php esc_html_e( 'WooCommerce Integration Add On', 'pmpro-memberpress-migration-toolkit' ); ?></a>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Email Marketing:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Multiple Add Ons available for', 'pmpro-memberpress-migration-toolkit' ); ?>
+				<a href="https://www.paidmembershipspro.com/add-ons/pmpro-mailchimp-integration/" target="_blank"><?php esc_html_e( 'Mailchimp', 'pmpro-memberpress-migration-toolkit' ); ?></a>,
+				<a href="https://www.paidmembershipspro.com/add-ons/pmpro-kit-integration/" target="_blank"><?php esc_html_e( 'Kit (ConvertKit)', 'pmpro-memberpress-migration-toolkit' ); ?></a>,
+				<a href="https://www.paidmembershipspro.com/add-ons/pmpro-aweber-integration/" target="_blank"><?php esc_html_e( 'AWeber', 'pmpro-memberpress-migration-toolkit' ); ?></a>,
+				<?php esc_html_e( 'and more.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+		</ul>
+
 		<button class="button button-primary" type="submit"><?php esc_html_e( 'Migrate Other Settings', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 		<?php
 	}

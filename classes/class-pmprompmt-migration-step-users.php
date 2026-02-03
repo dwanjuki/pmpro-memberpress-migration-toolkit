@@ -72,75 +72,106 @@ class PMProMPMT_Migration_Step_Users extends PMProMPMT_Migration_Step {
 			<?php
 		}
 		?>
-		<p><?php esc_html_e( 'Once you are ready, click the button below to queue up all users for migration from MemberPress to Paid Memberships Pro. This process will run in the background using Action Scheduler.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
-		<?php
-		$stripe_gateways = array();
-		$mp_options = get_option( 'mepr_options', array() );
-		foreach ( $mp_options['integrations'] as $gateway ) {
-			if ( 'MeprStripeGateway' === $gateway['gateway'] ) {
-				$stripe_gateways[] = $gateway;
+
+		<h4><?php esc_html_e( 'What Will Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li><?php esc_html_e( 'MemberPress transactions converted to PMPro orders', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'User membership assignments (based on migrated level mapping)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Membership start and end dates', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Stripe subscription data (optional, see checkbox below)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+		</ul>
+
+		<h4><?php esc_html_e( 'What Will NOT Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li>
+				<strong><?php esc_html_e( 'Non-Stripe Payment Gateway Subscriptions:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'PayPal, Authorize.net, and other gateway subscriptions cannot be automatically migrated. Memberships using these gateways will be assigned an expiration date and users will have to check out again to renew their membership. These payment subscriptions should be manually cancelled in your payment gateway.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+			<li>
+				<strong><?php esc_html_e( 'Member Notes/Communication History:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				<?php esc_html_e( 'Any notes attached to MemberPress members are not migrated. Export these separately if needed.', 'pmpro-memberpress-migration-toolkit' ); ?>
+			</li>
+		</ul>
+
+		<h4><?php esc_html_e( 'Important Notes', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+		<ul>
+			<li><?php esc_html_e( 'The migration runs in the background using Action Scheduler. Large sites may take some time to complete.', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+		</ul>
+
+		<p><?php esc_html_e( 'Once you are ready, click the button below to queue up all users for migration from MemberPress to Paid Memberships Pro.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+		<hr />
+		<div>
+			<?php
+			$stripe_gateways = array();
+			$mp_options = get_option( 'mepr_options', array() );
+			foreach ( $mp_options['integrations'] as $gateway ) {
+				if ( 'MeprStripeGateway' === $gateway['gateway'] ) {
+					$stripe_gateways[] = $gateway;
+				}
 			}
-		}
-		if ( 1 === count( $stripe_gateways ) ) {
-			?>
-			<label for="pmprompmt_migrate_stripe_gateway_id">
-				<input type="checkbox" name="pmprompmt_migrate_stripe_gateway_id" id="pmprompmt_migrate_stripe_gateway_id" value="<?php echo esc_attr( $stripe_gateways[0]['id'] ); ?>" />
-				<?php esc_html_e( 'Migrate Stripe subscriptions to PMPro', 'pmpro-memberpress-migration-toolkit' ); ?>
-			</label>
-			<br /><br />
-			<?php
-		} elseif ( count( $stripe_gateways ) > 1 ) {
-			?>
-			<label for="pmprompmt_migrate_stripe_gateway_id"><?php esc_html_e( 'Migrate Stripe subscriptions to PMPro?', 'pmpro-memberpress-migration-toolkit' ); ?></label>
-			<br />
-			<select name="pmprompmt_migrate_stripe_gateway_id" id="pmprompmt_migrate_stripe_gateway_id">
-				<option value=""><?php esc_html_e( 'Do not migrate Stripe subscriptions', 'pmpro-memberpress-migration-toolkit' ); ?></option>
-				<?php
-				foreach ( $stripe_gateways as $gateway ) {
-					?>
-					<option value="<?php echo esc_attr( $gateway['id'] ); ?>"><?php echo esc_html( 'Migrate from Gateway ID: ' . $gateway['id'] ); ?></option>
-					<?php
-				}
+			if ( 1 === count( $stripe_gateways ) ) {
 				?>
-			</select>
-			<br /><br />
-			<?php
-		}
-		?>
-		<div style="display: none;" id="pmpro_memberpress_migration_stripe_keys">
-			<?php
-			// Allow changing the PMPro gateway environment and Stripe API keys.
-			$current_gateway_environment = get_option( 'pmpro_gateway_environment', 'live' );
-			?>
-			<label for="pmpro_gateway_environment"><?php esc_html_e( 'PMPro Gateway Environment:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
-			<select name="pmpro_gateway_environment">
-				<option value="live"<?php selected( $current_gateway_environment, 'live' ); ?>><?php esc_html_e( 'Live/Production', 'pmpro-memberpress-migration-toolkit' ); ?></option>
-				<option value="sandbox"<?php selected( $current_gateway_environment, 'sandbox' ); ?>><?php esc_html_e( 'Sandbox/Testing', 'pmpro-memberpress-migration-toolkit' ); ?></option>
-			</select>
-			<br /><br />
-			<label for="pmpro_stripe_publishablekey"><?php esc_html_e( 'Stripe Publishable Key:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
-			<input type="text" name="pmpro_stripe_publishablekey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_publishablekey', '' ) ); ?>" />
-			<br /><br />
-			<label for="pmpro_stripe_secretkey"><?php esc_html_e( 'Stripe Secret Key:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
-			<input type="text" name="pmpro_stripe_secretkey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_secretkey', '' ) ); ?>" />
-		</div>
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				function toggleStripeKeys() {
-					// Handle both checkbox and select inputs.
-					var gatewayId = $('#pmprompmt_migrate_stripe_gateway_id').is(':checkbox') ? ($('#pmprompmt_migrate_stripe_gateway_id').is(':checked') ? $('#pmprompmt_migrate_stripe_gateway_id').val() : '') : $('#pmprompmt_migrate_stripe_gateway_id').val();
-					if (gatewayId) {
-						$('#pmpro_memberpress_migration_stripe_keys').show();
-					} else {
-						$('#pmpro_memberpress_migration_stripe_keys').hide();
+				<label for="pmprompmt_migrate_stripe_gateway_id">
+					<input type="checkbox" name="pmprompmt_migrate_stripe_gateway_id" id="pmprompmt_migrate_stripe_gateway_id" value="<?php echo esc_attr( $stripe_gateways[0]['id'] ); ?>" />
+					<?php esc_html_e( 'Migrate Stripe subscriptions to PMPro', 'pmpro-memberpress-migration-toolkit' ); ?>
+				</label>
+				<br /><br />
+				<?php
+			} elseif ( count( $stripe_gateways ) > 1 ) {
+				?>
+				<label for="pmprompmt_migrate_stripe_gateway_id"><?php esc_html_e( 'Migrate Stripe subscriptions to PMPro?', 'pmpro-memberpress-migration-toolkit' ); ?></label>
+				<br />
+				<select name="pmprompmt_migrate_stripe_gateway_id" id="pmprompmt_migrate_stripe_gateway_id">
+					<option value=""><?php esc_html_e( 'Do not migrate Stripe subscriptions', 'pmpro-memberpress-migration-toolkit' ); ?></option>
+					<?php
+					foreach ( $stripe_gateways as $gateway ) {
+						?>
+						<option value="<?php echo esc_attr( $gateway['id'] ); ?>"><?php echo esc_html( 'Migrate from Gateway ID: ' . $gateway['id'] ); ?></option>
+						<?php
 					}
-				}
-				$('#pmprompmt_migrate_stripe_gateway_id').change(function() {
+					?>
+				</select>
+				<br /><br />
+				<?php
+			}
+			?>
+			<div style="display: none;" id="pmpro_memberpress_migration_stripe_keys">
+				<p><?php esc_html_e( 'Please provide your Stripe API keys that are associated with the MemberPress Stripe gateway you are migrating from. These keys are necessary to manage subscriptions in Paid Memberships Pro.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+				<p><?php esc_html_e( 'With this setting enabled, customers with Stripe subscriptions will have their subscriptions migrated to Paid Memberships Pro. Customers with subscriptions managed by other gateways will be assigned a membership expiration date and will need to check out again to renew their membership.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+				<?php
+				// Allow changing the PMPro gateway environment and Stripe API keys.
+				$current_gateway_environment = get_option( 'pmpro_gateway_environment', 'live' );
+				?>
+				<label for="pmpro_gateway_environment"><?php esc_html_e( 'PMPro Gateway Environment:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
+				<select name="pmpro_gateway_environment">
+					<option value="live"<?php selected( $current_gateway_environment, 'live' ); ?>><?php esc_html_e( 'Live/Production', 'pmpro-memberpress-migration-toolkit' ); ?></option>
+					<option value="sandbox"<?php selected( $current_gateway_environment, 'sandbox' ); ?>><?php esc_html_e( 'Sandbox/Testing', 'pmpro-memberpress-migration-toolkit' ); ?></option>
+				</select>
+				<br /><br />
+				<label for="pmpro_stripe_publishablekey"><?php esc_html_e( 'Stripe Publishable Key:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
+				<input type="text" name="pmpro_stripe_publishablekey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_publishablekey', '' ) ); ?>" />
+				<br /><br />
+				<label for="pmpro_stripe_secretkey"><?php esc_html_e( 'Stripe Secret Key:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
+				<input type="text" name="pmpro_stripe_secretkey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_secretkey', '' ) ); ?>" />
+			</div>
+			<script type="text/javascript">
+				jQuery(document).ready(function($) {
+					function toggleStripeKeys() {
+						// Handle both checkbox and select inputs.
+						var gatewayId = $('#pmprompmt_migrate_stripe_gateway_id').is(':checkbox') ? ($('#pmprompmt_migrate_stripe_gateway_id').is(':checked') ? $('#pmprompmt_migrate_stripe_gateway_id').val() : '') : $('#pmprompmt_migrate_stripe_gateway_id').val();
+						if (gatewayId) {
+							$('#pmpro_memberpress_migration_stripe_keys').show();
+						} else {
+							$('#pmpro_memberpress_migration_stripe_keys').hide();
+						}
+					}
+					$('#pmprompmt_migrate_stripe_gateway_id').change(function() {
+						toggleStripeKeys();
+					});
 					toggleStripeKeys();
 				});
-				toggleStripeKeys();
-			});
-		</script>
+			</script>
+		</div>
 		<button class="button button-primary" type="submit"><?php esc_html_e( 'Queue User Migrations', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 		<?php
 	}

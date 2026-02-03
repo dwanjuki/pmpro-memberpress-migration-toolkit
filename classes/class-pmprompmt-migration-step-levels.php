@@ -64,12 +64,48 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 		// If there are MemberPress levels but no mapping yet, show a button to run the full migration.
 		if ( ! empty( $mp_levels ) && empty( $level_map ) ) {
 			?>
-			<p><?php esc_html_e( 'The following data will NOT be migrated automatically and will need to be set up manually after the levels have been created:', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+			<h4><?php esc_html_e( 'What Will Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
 			<ul>
-				<li><?php esc_html_e( 'Expiration Dates' ); ?></li>
-				<li><?php esc_html_e( 'Trials' ); ?></li>
-				<li><?php esc_html_e( 'Limited Payment Cycles' ); ?></li>
+				<li><?php esc_html_e( 'Membership level names and descriptions', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+				<li><?php esc_html_e( 'Initial payment amounts (price)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+				<li><?php esc_html_e( 'Recurring payment settings (billing amount, cycle number, cycle period)', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+				<li><?php esc_html_e( 'MemberPress level groups converted to PMPro level groups', 'pmpro-memberpress-migration-toolkit' ); ?></li>
+				<li><?php esc_html_e( 'Upgrade/downgrade path settings', 'pmpro-memberpress-migration-toolkit' ); ?></li>
 			</ul>
+
+			<h4><?php esc_html_e( 'What Will NOT Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+			<ul>
+				<li>
+					<strong><?php esc_html_e( 'Expiration Dates/Membership Duration:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+					<?php esc_html_e( 'Configure in PMPro level settings under "Membership Expiration".', 'pmpro-memberpress-migration-toolkit' ); ?>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'Trial Pricing and Trial Periods:', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+					<?php esc_html_e( 'Configure in PMPro level settings under "Recurring Subscription".', 'pmpro-memberpress-migration-toolkit' ); ?>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'Limited Payment Cycles (Billing Limits):', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+					<?php esc_html_e( 'Set in PMPro level settings under "Billing Cycle Limit".', 'pmpro-memberpress-migration-toolkit' ); ?>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'Upgrade/Downgrade Paths', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'Custom Levels Page CSS/Styling', 'pmpro-memberpress-migration-toolkit' ); ?></strong>
+				</li>
+			</ul>
+
+			<h4><?php esc_html_e( 'After Migration', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: Link to PMPro membership levels admin page */
+					esc_html__( 'Review your levels at %s to configure expiration, trials, and billing limits.', 'pmpro-memberpress-migration-toolkit' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=pmpro-membershiplevels' ) ) . '">' . esc_html__( 'Memberships > Settings > Levels', 'pmpro-memberpress-migration-toolkit' ) . '</a>'
+				);
+				?>
+			</p>
+
 			<?php wp_nonce_field( 'pmpro_memberpress_migration_toolkit_migrate_levels', 'pmpro_memberpress_migration_toolkit_migrate_levels_nonce' ); ?>
 			<button class="button button-primary" type="submit" name="level-step-action" value="migrate_levels"><?php esc_html_e( 'Migrate All Levels And Level Groups Now', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 			<hr />

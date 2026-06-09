@@ -257,7 +257,8 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 		$pmpro_user_field_group->description = '';
 		$pmpro_user_field_group->levels = array();
 		$pmpro_user_field_group->fields = array();
-		foreach( $mp_options['custom_fields'] as $cf ) {
+		$mp_custom_fields = isset( $mp_options['custom_fields'] ) && is_array( $mp_options['custom_fields'] ) ? $mp_options['custom_fields'] : array();
+		foreach( $mp_custom_fields as $cf ) {
 			$cf = (array) $cf; // Make sure that we have an array and not an object.
 
 			$field = new stdClass();

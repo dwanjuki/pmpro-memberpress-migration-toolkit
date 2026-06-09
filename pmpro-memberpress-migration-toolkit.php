@@ -16,6 +16,11 @@ Domain Path: /languages
  * @since TBD
  */
 function pmprompmt_menu() {
+	// Bail if Paid Memberships Pro is not active.
+	if ( ! defined( 'PMPRO_VERSION' ) ) {
+		return;
+	}
+
 	add_submenu_page(
 		'pmpro-dashboard',
 		'MemberPress Migration Toolkit',
@@ -94,6 +99,11 @@ function pmprompmt_page() {
 function pmprompmt_queue_user_migrations( $migrate_stripe_gateway_id = false ) {
 	global $wpdb;
 
+	// Bail if Paid Memberships Pro is not active, such as if it was deactivated mid-migration.
+	if ( ! defined( 'PMPRO_VERSION' ) ) {
+		return;
+	}
+
 	// Get an array of all user IDs.
 	$user_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->users" );
 
@@ -122,6 +132,11 @@ add_action( 'pmprompmt_queue_user_migrations', 'pmprompmt_queue_user_migrations'
  */
 function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) {
 	global $wpdb;
+
+	// Bail if Paid Memberships Pro is not active, such as if it was deactivated mid-migration.
+	if ( ! defined( 'PMPRO_VERSION' ) ) {
+		return;
+	}
 
 	// Validate user ID.
 	$user_id = intval( $user_id );
@@ -234,6 +249,11 @@ add_action( 'pmprompmt_migrate_user', 'pmprompmt_migrate_user', 10, 2 );
 function pmprompmt_queue_content_restriction_migrations() {
 	global $wpdb;
 
+	// Bail if Paid Memberships Pro is not active, such as if it was deactivated mid-migration.
+	if ( ! defined( 'PMPRO_VERSION' ) ) {
+		return;
+	}
+
 	// Since we can only migrate membership-based content restrictions, let's build our list of rules to migrate by querying mepr_rule_access_conditions
 	// for all unique rule IDs where access_type is 'membership'.
 	$table_name = $wpdb->prefix . 'mepr_rule_access_conditions';
@@ -257,6 +277,11 @@ add_action( 'pmprompmt_queue_content_restriction_migrations', 'pmprompmt_queue_c
 function pmprompmt_migrate_content_restriction( $rule_id ) {
 	// First, let's get the MemberPress product IDs that are associated with this rule.
 	global $wpdb, $pmpro_pages;
+
+	// Bail if Paid Memberships Pro is not active, such as if it was deactivated mid-migration.
+	if ( ! defined( 'PMPRO_VERSION' ) ) {
+		return;
+	}
 	$table_name = $wpdb->prefix . 'mepr_rule_access_conditions';
 	$mp_product_ids = $wpdb->get_col( $wpdb->prepare( "SELECT access_condition FROM $table_name WHERE rule_id = %d AND access_type = 'membership'", $rule_id ) );
 	if ( empty( $mp_product_ids ) ) {

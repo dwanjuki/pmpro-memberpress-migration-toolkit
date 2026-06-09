@@ -104,7 +104,8 @@ class PMProMPMT_Migration_Step_Users extends PMProMPMT_Migration_Step {
 			<?php
 			$stripe_gateways = array();
 			$mp_options = get_option( 'mepr_options', array() );
-			foreach ( $mp_options['integrations'] as $gateway ) {
+			$mp_integrations = isset( $mp_options['integrations'] ) && is_array( $mp_options['integrations'] ) ? $mp_options['integrations'] : array();
+			foreach ( $mp_integrations as $gateway ) {
 				if ( 'MeprStripeGateway' === $gateway['gateway'] ) {
 					$stripe_gateways[] = $gateway;
 				}

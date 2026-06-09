@@ -188,15 +188,21 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 			// Maybe add this level to the user.
 			if ( ! empty( $level_map[ $transaction->product_id ] ) && in_array( $transaction->status, array( 'complete', 'confirmed' ), true ) ) {
 				$pmpro_level_id = $level_map[ $transaction->product_id ];
+
+				// Normalize the expiration date. MemberPress stores '0000-00-00 00:00:00' in
+				// expires_at for lifetime transactions, which means "no expiration".
+				$expires_at = ( empty( $transaction->expires_at ) || '0000-00-00 00:00:00' === $transaction->expires_at ) ? '' : $transaction->expires_at;
+
 				if ( empty( $levels_to_add[ $pmpro_level_id ] ) ) {
 					$levels_to_add[ $pmpro_level_id ] = array(
 						'startdate' => $transaction->created_at,
-						'enddate'   => $transaction->expires_at,
+						'enddate'   => $expires_at,
 					);
 				} else {
 					// If we already have this level, check if this transaction has a later expiration date.
-					if ( empty( $transaction->expires_at ) || strtotime( $transaction->expires_at ) > strtotime( $levels_to_add[ $pmpro_level_id ]['enddate'] ) ) {
-						$levels_to_add[ $pmpro_level_id ]['enddate'] = $transaction->expires_at;
+					// An empty expiration date means a lifetime membership, which always wins.
+					if ( ! empty( $levels_to_add[ $pmpro_level_id ]['enddate'] ) && ( empty( $expires_at ) || strtotime( $expires_at ) > strtotime( $levels_to_add[ $pmpro_level_id ]['enddate'] ) ) ) {
+						$levels_to_add[ $pmpro_level_id ]['enddate'] = $expires_at;
 					}
 					// If this transaction has an earlier start date, update it.
 					if ( empty( $levels_to_add[ $pmpro_level_id ]['startdate'] ) || strtotime( $transaction->created_at ) < strtotime( $levels_to_add[ $pmpro_level_id ]['startdate'] ) ) {
@@ -220,7 +226,7 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 				'trial_amount'    => 0,
 				'trial_limit'     => 0,
 				'startdate'       => $level_data['startdate'],
-				'enddate'         => $level_data['enddate']
+				'enddate'         => empty( $level_data['enddate'] ) ? '0000-00-00 00:00:00' : $level_data['enddate']
 			);
 			pmpro_changeMembershipLevel( $custom_level, $user_id );
 		}

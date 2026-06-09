@@ -27,11 +27,11 @@ class PMProMPMT_Migration_Step_Users extends PMProMPMT_Migration_Step {
 		global $wpdb;
 		$queue_user_migrations_query_args = array(
 			'hook'   => 'pmprompmt_queue_user_migrations',
-			'status' => ActionScheduler_Store::STATUS_PENDING,
+			'status' => array( ActionScheduler_Store::STATUS_PENDING, ActionScheduler_Store::STATUS_RUNNING ),
 		);
 		$migrate_user_query_args = array(
 			'hook'   => 'pmprompmt_migrate_user',
-			'status' => ActionScheduler_Store::STATUS_PENDING,
+			'status' => array( ActionScheduler_Store::STATUS_PENDING, ActionScheduler_Store::STATUS_RUNNING ),
 		);
 
 		// Check if a pmprompmt_queue_user_migrations or pmprompmt_migrate_user task is queued.
@@ -152,7 +152,7 @@ class PMProMPMT_Migration_Step_Users extends PMProMPMT_Migration_Step {
 				<input type="text" name="pmpro_stripe_publishablekey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_publishablekey', '' ) ); ?>" />
 				<br /><br />
 				<label for="pmpro_stripe_secretkey"><?php esc_html_e( 'Stripe Secret Key:', 'pmpro-memberpress-migration-toolkit' ); ?></label>
-				<input type="text" name="pmpro_stripe_secretkey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_secretkey', '' ) ); ?>" />
+				<input type="password" name="pmpro_stripe_secretkey" value="<?php echo esc_attr( get_option( 'pmpro_stripe_secretkey', '' ) ); ?>" autocomplete="off" />
 			</div>
 			<script type="text/javascript">
 				jQuery(document).ready(function($) {
@@ -185,9 +185,9 @@ class PMProMPMT_Migration_Step_Users extends PMProMPMT_Migration_Step {
 		if ( ! empty( $migrate_stripe_gateway_id ) ) {
 			// Update gateway environment and Stripe API keys.
 			update_option( 'pmpro_gateway', 'stripe' );
-			update_option( 'pmpro_gateway_environment', sanitize_text_field( wp_unslash( $_REQUEST['pmpro_gateway_environment'] ) ) );
-			update_option( 'pmpro_stripe_publishablekey', sanitize_text_field( wp_unslash( $_REQUEST['pmpro_stripe_publishablekey'] ) ) );
-			update_option( 'pmpro_stripe_secretkey', sanitize_text_field( wp_unslash( $_REQUEST['pmpro_stripe_secretkey'] ) ) );
+			update_option( 'pmpro_gateway_environment', isset( $_REQUEST['pmpro_gateway_environment'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['pmpro_gateway_environment'] ) ) : 'live' );
+			update_option( 'pmpro_stripe_publishablekey', isset( $_REQUEST['pmpro_stripe_publishablekey'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['pmpro_stripe_publishablekey'] ) ) : '' );
+			update_option( 'pmpro_stripe_secretkey', isset( $_REQUEST['pmpro_stripe_secretkey'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['pmpro_stripe_secretkey'] ) ) : '' );
 
 			// Set up webhook events as well.
 			$stripe = new PMProGateway_stripe();

@@ -2,7 +2,7 @@
 /*
 Plugin Name: Paid Memberships Pro - MemberPress Migration Toolkit Add On
 Plugin URI: https://www.paidmembershipspro.com/add-ons/pmpro-memberpress-migration-toolkit-add-on/
-Description: Quickly search Paid Memberships Pro admin pages for members, orders, subscriptions, and more.
+Description: Tools to help you migrate your membership site data from MemberPress to Paid Memberships Pro.
 Version: 0.1
 Author: Paid Memberships Pro
 Author URI: https://www.paidmembershipspro.com

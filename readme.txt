@@ -1,6 +1,6 @@
 === Paid Memberships Pro: MemberPress Migration Toolkit Add On ===
 Contributors: strangerstudios
-Tags: pmpro, paid memberships pro, search
+Tags: pmpro, paid memberships pro, memberpress, migration
 Requires at least: 5.0
 Tested up to: 6.7
 Stable tag: 0.1

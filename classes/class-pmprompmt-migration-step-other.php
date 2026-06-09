@@ -308,6 +308,29 @@ class PMProMPMT_Migration_Step_Other extends PMProMPMT_Migration_Step {
 			}
 			$pmpro_user_field_group->fields[] = $field;
 		}
-		update_option( 'pmpro_user_fields_settings', array( $pmpro_user_field_group ), false );
+		// Only save the field group if we actually migrated fields.
+		if ( ! empty( $pmpro_user_field_group->fields ) ) {
+			// Merge with any existing PMPro user field groups instead of overwriting them.
+			$user_fields_settings = get_option( 'pmpro_user_fields_settings', array() );
+			if ( ! is_array( $user_fields_settings ) ) {
+				$user_fields_settings = array();
+			}
+
+			// If a group with the same name already exists (e.g. this step was re-run), replace it.
+			$existing_group_key = false;
+			foreach ( $user_fields_settings as $key => $group ) {
+				if ( ! empty( $group->name ) && $group->name === $pmpro_user_field_group->name ) {
+					$existing_group_key = $key;
+					break;
+				}
+			}
+			if ( false === $existing_group_key ) {
+				$user_fields_settings[] = $pmpro_user_field_group;
+			} else {
+				$user_fields_settings[ $existing_group_key ] = $pmpro_user_field_group;
+			}
+
+			update_option( 'pmpro_user_fields_settings', $user_fields_settings, false );
+		}
 	}
 }

@@ -208,6 +208,35 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 
 		// Now give the user any levels that they need.
 		foreach ( $levels_to_add as $pmpro_level_id => $level_data ) {
+			// Check whether this membership has already expired. MemberPress uses
+			// '0000-00-00 00:00:00' as the expiration date for lifetime memberships.
+			$has_expired = ! empty( $level_data['enddate'] ) && '0000-00-00 00:00:00' !== $level_data['enddate'] && strtotime( $level_data['enddate'] ) < time();
+			if ( $has_expired ) {
+				// Insert the membership history record with status 'expired' directly. If we
+				// inserted it as 'active', PMPro's expiration cron would expire it on the next
+				// run and send a "Membership Expired" email to every old member at once.
+				$wpdb->insert(
+					$wpdb->pmpro_memberships_users,
+					array(
+						'user_id'         => $user_id,
+						'membership_id'   => $pmpro_level_id,
+						'code_id'         => 0,
+						'initial_payment' => 0,
+						'billing_amount'  => 0,
+						'cycle_number'    => 0,
+						'cycle_period'    => 'Month',
+						'billing_limit'   => 0,
+						'trial_amount'    => 0,
+						'trial_limit'     => 0,
+						'status'          => 'expired',
+						'startdate'       => $level_data['startdate'],
+						'enddate'         => $level_data['enddate'],
+					),
+					array( '%d', '%d', '%d', '%f', '%f', '%d', '%s', '%d', '%f', '%d', '%s', '%s', '%s' )
+				);
+				continue;
+			}
+
 			$custom_level = array(
 				'user_id'         => $user_id,
 				'membership_id'   => $pmpro_level_id,

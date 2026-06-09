@@ -322,13 +322,13 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			}
 
 			// Make sure that no PMPro pages are restricted.
-			$wpdb->query(
-				$wpdb->prepare(
+			$pmpro_page_ids = array_filter( array_map( 'intval', (array) $pmpro_pages ) );
+			if ( ! empty( $pmpro_page_ids ) ) {
+				$wpdb->query(
 					"DELETE FROM {$wpdb->prefix}pmpro_memberships_pages
-					WHERE page_id IN (%s)",
-					implode( ',', array_map( 'intval', $pmpro_pages ) )
-				)
-			);
+					WHERE page_id IN (" . implode( ',', $pmpro_page_ids ) . ')'
+				);
+			}
 			break;
 		case 'all':
 			// Run a single query to update all posts and pages.
@@ -343,13 +343,13 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			}
 
 			// Make sure that no PMPro pages are restricted.
-			$wpdb->query(
-				$wpdb->prepare(
+			$pmpro_page_ids = array_filter( array_map( 'intval', (array) $pmpro_pages ) );
+			if ( ! empty( $pmpro_page_ids ) ) {
+				$wpdb->query(
 					"DELETE FROM {$wpdb->prefix}pmpro_memberships_pages
-					WHERE page_id IN (%s)",
-					implode( ',', array_map( 'intval', $pmpro_pages ) )
-				)
-			);
+					WHERE page_id IN (" . implode( ',', $pmpro_page_ids ) . ')'
+				);
+			}
 			break;
 		case 'all_tax_category':
 		case 'all_tax_post_tag':

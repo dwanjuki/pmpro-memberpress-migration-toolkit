@@ -142,6 +142,13 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 		foreach ( $mp_transactions as $transaction ) {
 			// Create a PMPro order for this transaction.
 			$order = new MemberOrder();
+
+			// Don't let migrated orders inherit the site's current gateway settings. These
+			// transactions were not processed by a PMPro gateway. For transactions being
+			// migrated to the PMPro Stripe gateway, the gateway values are set below.
+			$order->gateway = '';
+			$order->gateway_environment = '';
+
 			$order->user_id = $transaction->user_id;
 			$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
 			$order->payment_transaction_id = $transaction->trans_num;
@@ -169,6 +176,7 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 			) {
 				// This transaction was made via Stripe and we are migrating Stripe API keys.
 				$order->gateway = 'stripe';
+				$order->gateway_environment = get_option( 'pmpro_gateway_environment' );
 
 				// Check if this transaction is part of a subscription.
 				if ( ! empty( $transaction->subscription_id ) ) {

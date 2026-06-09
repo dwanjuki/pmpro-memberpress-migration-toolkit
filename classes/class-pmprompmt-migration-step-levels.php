@@ -288,6 +288,28 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 				}
 			}
 
+			// Make sure that every migrated level ends up in a level group. The frontend
+			// Levels page only displays levels that are in a group, so levels whose
+			// MemberPress product was not in a group would otherwise be hidden.
+			$ungrouped_level_ids = array();
+			foreach ( $level_map as $mp_level_id => $pmpro_level_id ) {
+				if ( empty( pmpro_get_group_id_for_level( $pmpro_level_id ) ) ) {
+					$ungrouped_level_ids[] = $pmpro_level_id;
+				}
+			}
+			if ( ! empty( $ungrouped_level_ids ) ) {
+				// Add ungrouped levels to the first existing level group, or create one.
+				$level_groups = pmpro_get_level_groups_in_order();
+				if ( empty( $level_groups ) ) {
+					$ungrouped_group_id = pmpro_create_level_group( __( 'Membership Levels', 'pmpro-memberpress-migration-toolkit' ), true );
+				} else {
+					$ungrouped_group_id = reset( $level_groups )->id;
+				}
+				foreach ( $ungrouped_level_ids as $pmpro_level_id ) {
+					pmpro_add_level_to_group( $pmpro_level_id, $ungrouped_group_id );
+				}
+			}
+
 			// Break the PMPro levels cache to reflect new levels.
 			pmpro_getAllLevels( true, true, true );
 		} elseif ( 'save_level_map' === sanitize_text_field( wp_unslash( $_POST['level-step-action'] ) ) ) {

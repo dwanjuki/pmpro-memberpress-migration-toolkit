@@ -168,6 +168,15 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 			if ( $create_order ) {
 				// Create a PMPro order for this transaction.
 				$order = new MemberOrder();
+
+				// Don't let migrated orders inherit the site's current gateway. These transactions
+				// were not processed by a PMPro gateway, and PMPro handles orders with no gateway
+				// gracefully. We intentionally leave gateway_environment as set by the order
+				// constructor (the site's current environment) so these orders still appear in
+				// environment-filtered reports such as the Sales report. Transactions being
+				// migrated to the PMPro Stripe gateway set the gateway below.
+				$order->gateway = '';
+
 				$order->user_id = $transaction->user_id;
 				$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
 				$order->payment_transaction_id = $transaction->trans_num;
@@ -190,6 +199,7 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 				}
 				if ( $migrating_to_stripe ) {
 					// This transaction was made via Stripe and we are migrating Stripe API keys.
+					// gateway_environment is already set from the site option by the order constructor.
 					$order->gateway = 'stripe';
 					if ( ! empty( $stripe_subscription_id ) ) {
 						$order->subscription_transaction_id = $stripe_subscription_id;

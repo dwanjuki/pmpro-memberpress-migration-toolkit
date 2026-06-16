@@ -140,50 +140,63 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 		$levels_to_add = array(); // level_id => associative array with level data.
 		
 		foreach ( $mp_transactions as $transaction ) {
-			// Create a PMPro order for this transaction.
-			$order = new MemberOrder();
-			$order->user_id = $transaction->user_id;
-			$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
-			$order->payment_transaction_id = $transaction->trans_num;
-			$order->timestamp = strtotime( $transaction->created_at );
-			$order->total = $transaction->total;
-			$order->subtotal = $transaction->amount;
-			$order->tax = $transaction->tax_amount;
-			$order->notes = 'Migrated from MemberPress Transaction ID ' . $transaction->id;
-			switch ( $transaction->status ) {
-				case 'complete':
-				case 'confirmed':
-					$order->status = 'success';
-					break;
-				case 'failed':
-					$order->status = 'error';
-					break;
-				default:
-					$order->status = $transaction->status;
-					break;
-			}
-			if (
+			// Check whether this transaction is being migrated to the PMPro Stripe gateway
+			// and whether it is part of an active Stripe subscription.
+			$migrating_to_stripe = (
 				! empty( $migrate_stripe_gateway_id ) &&
 				$transaction->gateway == $migrate_stripe_gateway_id &&
 				in_array( $transaction->status, array( 'complete', 'confirmed' ), true )
-			) {
-				// This transaction was made via Stripe and we are migrating Stripe API keys.
-				$order->gateway = 'stripe';
+			);
+			$stripe_subscription_id = '';
+			if ( $migrating_to_stripe && ! empty( $transaction->subscription_id ) ) {
+				// Get the subscription transaction ID for this transaction.
+				$subscription_id = $wpdb->get_var( $wpdb->prepare( "SELECT subscr_id FROM {$wpdb->prefix}mepr_subscriptions WHERE id = %d AND status = 'active' LIMIT 1", $transaction->subscription_id ) );
+				if ( ! empty( $subscription_id ) ) {
+					$stripe_subscription_id = $subscription_id;
 
-				// Check if this transaction is part of a subscription.
-				if ( ! empty( $transaction->subscription_id ) ) {
-					// Get the subscription transaction ID for this transaction.
-					$subscription_id = $wpdb->get_var( $wpdb->prepare( "SELECT subscr_id FROM {$wpdb->prefix}mepr_subscriptions WHERE id = %d AND status = 'active' LIMIT 1", $transaction->subscription_id ) );
-					if ( ! empty( $subscription_id ) ) {
-						$order->gateway = 'stripe';
-						$order->subscription_transaction_id = $subscription_id;
-
-						// Let's also remove the `expires_at` to avoid PMPro auto-expiring the membership.
-						$transaction->expires_at = null;
-					}
+					// Let's also remove the `expires_at` to avoid PMPro auto-expiring the membership.
+					$transaction->expires_at = null;
 				}
 			}
-			$order->saveOrder();
+
+			// 'confirmed' transactions are MemberPress subscription confirmation records rather
+			// than real payments, so creating $0 orders for them would inflate order counts in
+			// reports. Only create an order for one if it is needed to link a migrated Stripe
+			// subscription that has no completed payments yet.
+			$create_order = 'confirmed' !== $transaction->status || ! empty( $stripe_subscription_id );
+
+			if ( $create_order ) {
+				// Create a PMPro order for this transaction.
+				$order = new MemberOrder();
+				$order->user_id = $transaction->user_id;
+				$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
+				$order->payment_transaction_id = $transaction->trans_num;
+				$order->timestamp = strtotime( $transaction->created_at );
+				$order->total = $transaction->total;
+				$order->subtotal = $transaction->amount;
+				$order->tax = $transaction->tax_amount;
+				$order->notes = 'Migrated from MemberPress Transaction ID ' . $transaction->id;
+				switch ( $transaction->status ) {
+					case 'complete':
+					case 'confirmed':
+						$order->status = 'success';
+						break;
+					case 'failed':
+						$order->status = 'error';
+						break;
+					default:
+						$order->status = $transaction->status;
+						break;
+				}
+				if ( $migrating_to_stripe ) {
+					// This transaction was made via Stripe and we are migrating Stripe API keys.
+					$order->gateway = 'stripe';
+					if ( ! empty( $stripe_subscription_id ) ) {
+						$order->subscription_transaction_id = $stripe_subscription_id;
+					}
+				}
+				$order->saveOrder();
+			}
 
 			// Maybe add this level to the user.
 			if ( ! empty( $level_map[ $transaction->product_id ] ) && in_array( $transaction->status, array( 'complete', 'confirmed' ), true ) ) {

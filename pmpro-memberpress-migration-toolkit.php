@@ -312,16 +312,14 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 		case 'single_page':
 		case 'single_post':
 			// Get the current PMPro restriction for this post/page.
+			// Use INSERT IGNORE since the restriction may already exist, such as if multiple
+			// MemberPress rules cover the same post or this rule is migrated again.
 			foreach( $pmpro_level_ids as $pmpro_level_id ) {
-				$wpdb->insert(
-					$wpdb->prefix . 'pmpro_memberships_pages',
-					array(
-						'page_id'        => intval( $rule_content ),
-						'membership_id' => intval( $pmpro_level_id ),
-					),
-					array(
-						'%d',
-						'%d',
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_pages (page_id, membership_id) VALUES (%d, %d)",
+						intval( $rule_content ),
+						intval( $pmpro_level_id )
 					)
 				);
 			}
@@ -405,15 +403,11 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			if ( ! empty( $child_pages ) ) {
 				foreach ( $child_pages as $child_page ) {
 					foreach( $pmpro_level_ids as $pmpro_level_id ) {
-						$wpdb->insert(
-							$wpdb->prefix . 'pmpro_memberships_pages',
-							array(
-								'page_id'        => intval( $child_page->ID ),
-								'membership_id' => intval( $pmpro_level_id ),
-							),
-							array(
-								'%d',
-								'%d',
+						$wpdb->query(
+							$wpdb->prepare(
+								"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_pages (page_id, membership_id) VALUES (%d, %d)",
+								intval( $child_page->ID ),
+								intval( $pmpro_level_id )
 							)
 						);
 					}

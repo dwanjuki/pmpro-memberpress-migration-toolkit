@@ -380,19 +380,45 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			break;
 		case 'all_tax_category':
 		case 'all_tax_post_tag':
+			// These rules restrict all content that has any term in the taxonomy, so restrict every term in the taxonomy.
+			$taxonomy = 'all_tax_category' === $rule_type ? 'category' : 'post_tag';
+			$term_ids = get_terms(
+				array(
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => false,
+					'fields'     => 'ids',
+				)
+			);
+			if ( is_wp_error( $term_ids ) ) {
+				break;
+			}
+			foreach ( $term_ids as $term_id ) {
+				foreach( $pmpro_level_ids as $pmpro_level_id ) {
+					$wpdb->query(
+						$wpdb->prepare(
+							"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_categories (membership_id, category_id) VALUES (%d, %d)",
+							intval( $pmpro_level_id ),
+							intval( $term_id )
+						)
+					);
+				}
+			}
+			break;
 		case 'category':
 		case 'tag':
 			// For taxonomy restrictions, we're going to instead update the pmpro_memberships_categories table.
+			// MemberPress stores the term slug in the rule content for these rule types.
+			$taxonomy = 'category' === $rule_type ? 'category' : 'post_tag';
+			$term = get_term_by( 'slug', $rule_content, $taxonomy );
+			if ( empty( $term ) || is_wp_error( $term ) ) {
+				break;
+			}
 			foreach( $pmpro_level_ids as $pmpro_level_id ) {
-				$wpdb->insert(
-					$wpdb->prefix . 'pmpro_memberships_categories',
-					array(
-						'membership_id' => intval( $pmpro_level_id ),
-						'category_id'   => intval( $rule_content ),
-					),
-					array(
-						'%d',
-						'%d',
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_categories (membership_id, category_id) VALUES (%d, %d)",
+						intval( $pmpro_level_id ),
+						intval( $term->term_id )
 					)
 				);
 			}

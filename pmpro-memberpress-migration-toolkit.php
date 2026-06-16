@@ -367,15 +367,11 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			}
 			foreach ( $term_ids as $term_id ) {
 				foreach( $pmpro_level_ids as $pmpro_level_id ) {
-					$wpdb->insert(
-						$wpdb->prefix . 'pmpro_memberships_categories',
-						array(
-							'membership_id' => intval( $pmpro_level_id ),
-							'category_id'   => intval( $term_id ),
-						),
-						array(
-							'%d',
-							'%d',
+					$wpdb->query(
+						$wpdb->prepare(
+							"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_categories (membership_id, category_id) VALUES (%d, %d)",
+							intval( $pmpro_level_id ),
+							intval( $term_id )
 						)
 					);
 				}
@@ -387,19 +383,15 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			// MemberPress stores the term slug in the rule content for these rule types.
 			$taxonomy = 'category' === $rule_type ? 'category' : 'post_tag';
 			$term = get_term_by( 'slug', $rule_content, $taxonomy );
-			if ( empty( $term ) ) {
+			if ( empty( $term ) || is_wp_error( $term ) ) {
 				break;
 			}
 			foreach( $pmpro_level_ids as $pmpro_level_id ) {
-				$wpdb->insert(
-					$wpdb->prefix . 'pmpro_memberships_categories',
-					array(
-						'membership_id' => intval( $pmpro_level_id ),
-						'category_id'   => intval( $term->term_id ),
-					),
-					array(
-						'%d',
-						'%d',
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT IGNORE INTO {$wpdb->prefix}pmpro_memberships_categories (membership_id, category_id) VALUES (%d, %d)",
+						intval( $pmpro_level_id ),
+						intval( $term->term_id )
 					)
 				);
 			}

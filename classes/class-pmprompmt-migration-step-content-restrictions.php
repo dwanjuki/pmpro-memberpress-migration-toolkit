@@ -27,11 +27,11 @@ class PMProMPMT_Migration_Step_Content_Restrictions extends PMProMPMT_Migration_
 		global $wpdb;
 		$queue_content_restriction_migrations_query_args = array(
 			'hook'   => 'pmprompmt_queue_content_restriction_migrations',
-			'status' => ActionScheduler_Store::STATUS_PENDING,
+			'status' => array( ActionScheduler_Store::STATUS_PENDING, ActionScheduler_Store::STATUS_RUNNING ),
 		);
 		$migrate_content_restriction_migrations_query_args = array(
 			'hook'   => 'pmprompmt_migrate_content_restriction',
-			'status' => ActionScheduler_Store::STATUS_PENDING,
+			'status' => array( ActionScheduler_Store::STATUS_PENDING, ActionScheduler_Store::STATUS_RUNNING ),
 		);
 
 		// Check if a pmprompmt_queue_content_restriction_migrations or pmprompmt_migrate_content_restriction task is queued.

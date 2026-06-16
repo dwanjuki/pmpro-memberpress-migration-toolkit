@@ -52,7 +52,7 @@ class PMProMPMT_Migration_Step_License extends PMProMPMT_Migration_Step {
 		</ul>
 		<p><?php esc_html_e( 'If you do not have a license key, you can skip this step and continue with the migration.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
 
-		<input type="text" name="pmpro_memberpress_migration_toolkit_license_key" value="<?php echo esc_attr( get_option( 'pmpro_license_key', '' ) ); ?>" class="pmpro-wizard__field-block" />
+		<input type="text" name="pmprompmt_license_key" value="<?php echo esc_attr( get_option( 'pmpro_license_key', '' ) ); ?>" class="pmpro-wizard__field-block" />
 		<button class="button button-primary" type="submit"><?php esc_html_e( 'Activate License', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 		<?php
 	}
@@ -63,8 +63,8 @@ class PMProMPMT_Migration_Step_License extends PMProMPMT_Migration_Step {
 	static public function process_step() {
 		// Get the license key from the form submission.
 		$license_key = '';
-		if ( isset( $_POST['pmpro_memberpress_migration_toolkit_license_key'] ) ) {
-			$license_key = sanitize_text_field( wp_unslash( $_POST['pmpro_memberpress_migration_toolkit_license_key'] ) );
+		if ( isset( $_POST['pmprompmt_license_key'] ) ) {
+			$license_key = sanitize_text_field( wp_unslash( $_POST['pmprompmt_license_key'] ) );
 		}
 
 		// Update the license key option.

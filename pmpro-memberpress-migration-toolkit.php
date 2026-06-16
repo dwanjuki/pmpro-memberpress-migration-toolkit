@@ -140,71 +140,92 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 		$levels_to_add = array(); // level_id => associative array with level data.
 		
 		foreach ( $mp_transactions as $transaction ) {
-			// Create a PMPro order for this transaction.
-			$order = new MemberOrder();
-
-			// Don't let migrated orders inherit the site's current gateway settings. These
-			// transactions were not processed by a PMPro gateway. For transactions being
-			// migrated to the PMPro Stripe gateway, the gateway values are set below.
-			$order->gateway = '';
-			$order->gateway_environment = '';
-
-			$order->user_id = $transaction->user_id;
-			$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
-			$order->payment_transaction_id = $transaction->trans_num;
-			$order->timestamp = strtotime( $transaction->created_at );
-			$order->total = $transaction->total;
-			$order->subtotal = $transaction->amount;
-			$order->tax = $transaction->tax_amount;
-			$order->notes = 'Migrated from MemberPress Transaction ID ' . $transaction->id;
-			switch ( $transaction->status ) {
-				case 'complete':
-				case 'confirmed':
-					$order->status = 'success';
-					break;
-				case 'failed':
-					$order->status = 'error';
-					break;
-				default:
-					$order->status = $transaction->status;
-					break;
-			}
-			if (
+			// Check whether this transaction is being migrated to the PMPro Stripe gateway
+			// and whether it is part of an active Stripe subscription.
+			$migrating_to_stripe = (
 				! empty( $migrate_stripe_gateway_id ) &&
 				$transaction->gateway == $migrate_stripe_gateway_id &&
 				in_array( $transaction->status, array( 'complete', 'confirmed' ), true )
-			) {
-				// This transaction was made via Stripe and we are migrating Stripe API keys.
-				$order->gateway = 'stripe';
-				$order->gateway_environment = get_option( 'pmpro_gateway_environment' );
+			);
+			$stripe_subscription_id = '';
+			if ( $migrating_to_stripe && ! empty( $transaction->subscription_id ) ) {
+				// Get the subscription transaction ID for this transaction.
+				$subscription_id = $wpdb->get_var( $wpdb->prepare( "SELECT subscr_id FROM {$wpdb->prefix}mepr_subscriptions WHERE id = %d AND status = 'active' LIMIT 1", $transaction->subscription_id ) );
+				if ( ! empty( $subscription_id ) ) {
+					$stripe_subscription_id = $subscription_id;
 
-				// Check if this transaction is part of a subscription.
-				if ( ! empty( $transaction->subscription_id ) ) {
-					// Get the subscription transaction ID for this transaction.
-					$subscription_id = $wpdb->get_var( $wpdb->prepare( "SELECT subscr_id FROM {$wpdb->prefix}mepr_subscriptions WHERE id = %d AND status = 'active' LIMIT 1", $transaction->subscription_id ) );
-					if ( ! empty( $subscription_id ) ) {
-						$order->gateway = 'stripe';
-						$order->subscription_transaction_id = $subscription_id;
-
-						// Let's also remove the `expires_at` to avoid PMPro auto-expiring the membership.
-						$transaction->expires_at = null;
-					}
+					// Let's also remove the `expires_at` to avoid PMPro auto-expiring the membership.
+					$transaction->expires_at = null;
 				}
 			}
-			$order->saveOrder();
+
+			// 'confirmed' transactions are MemberPress subscription confirmation records rather
+			// than real payments, so creating $0 orders for them would inflate order counts in
+			// reports. Only create an order for one if it is needed to link a migrated Stripe
+			// subscription that has no completed payments yet.
+			$create_order = 'confirmed' !== $transaction->status || ! empty( $stripe_subscription_id );
+
+			if ( $create_order ) {
+				// Create a PMPro order for this transaction.
+				$order = new MemberOrder();
+
+				// Don't let migrated orders inherit the site's current gateway. These transactions
+				// were not processed by a PMPro gateway, and PMPro handles orders with no gateway
+				// gracefully. We intentionally leave gateway_environment as set by the order
+				// constructor (the site's current environment) so these orders still appear in
+				// environment-filtered reports such as the Sales report. Transactions being
+				// migrated to the PMPro Stripe gateway set the gateway below.
+				$order->gateway = '';
+
+				$order->user_id = $transaction->user_id;
+				$order->membership_id = ! empty( $level_map[ $transaction->product_id ] ) ? $level_map[ $transaction->product_id ] : 0;
+				$order->payment_transaction_id = $transaction->trans_num;
+				$order->timestamp = strtotime( $transaction->created_at );
+				$order->total = $transaction->total;
+				$order->subtotal = $transaction->amount;
+				$order->tax = $transaction->tax_amount;
+				$order->notes = 'Migrated from MemberPress Transaction ID ' . $transaction->id;
+				switch ( $transaction->status ) {
+					case 'complete':
+					case 'confirmed':
+						$order->status = 'success';
+						break;
+					case 'failed':
+						$order->status = 'error';
+						break;
+					default:
+						$order->status = $transaction->status;
+						break;
+				}
+				if ( $migrating_to_stripe ) {
+					// This transaction was made via Stripe and we are migrating Stripe API keys.
+					// gateway_environment is already set from the site option by the order constructor.
+					$order->gateway = 'stripe';
+					if ( ! empty( $stripe_subscription_id ) ) {
+						$order->subscription_transaction_id = $stripe_subscription_id;
+					}
+				}
+				$order->saveOrder();
+			}
 
 			// Maybe add this level to the user.
 			if ( ! empty( $level_map[ $transaction->product_id ] ) && in_array( $transaction->status, array( 'complete', 'confirmed' ), true ) ) {
 				$pmpro_level_id = $level_map[ $transaction->product_id ];
+
+				// Normalize the expiration date. MemberPress stores '0000-00-00 00:00:00' in
+				// expires_at for lifetime transactions, which means "no expiration".
+				$expires_at = ( empty( $transaction->expires_at ) || '0000-00-00 00:00:00' === $transaction->expires_at ) ? '' : $transaction->expires_at;
+
 				if ( empty( $levels_to_add[ $pmpro_level_id ] ) ) {
 					$levels_to_add[ $pmpro_level_id ] = array(
 						'startdate' => $transaction->created_at,
-						'enddate'   => $transaction->expires_at,
+						'enddate'   => $expires_at,
 					);
 				} else {
 					// If we already have this level, check if this transaction has a later expiration date.
-					if ( empty( $transaction->expires_at ) || strtotime( $transaction->expires_at ) > strtotime( $levels_to_add[ $pmpro_level_id ]['enddate'] ) ) {
-						$levels_to_add[ $pmpro_level_id ]['enddate'] = $transaction->expires_at;
+					// An empty expiration date means a lifetime membership, which always wins.
+					if ( ! empty( $levels_to_add[ $pmpro_level_id ]['enddate'] ) && ( empty( $expires_at ) || strtotime( $expires_at ) > strtotime( $levels_to_add[ $pmpro_level_id ]['enddate'] ) ) ) {
+						$levels_to_add[ $pmpro_level_id ]['enddate'] = $expires_at;
 					}
 					// If this transaction has an earlier start date, update it.
 					if ( empty( $levels_to_add[ $pmpro_level_id ]['startdate'] ) || strtotime( $transaction->created_at ) < strtotime( $levels_to_add[ $pmpro_level_id ]['startdate'] ) ) {
@@ -228,7 +249,7 @@ function pmprompmt_migrate_user( $user_id, $migrate_stripe_gateway_id = false ) 
 				'trial_amount'    => 0,
 				'trial_limit'     => 0,
 				'startdate'       => $level_data['startdate'],
-				'enddate'         => $level_data['enddate']
+				'enddate'         => empty( $level_data['enddate'] ) ? '0000-00-00 00:00:00' : $level_data['enddate']
 			);
 			pmpro_changeMembershipLevel( $custom_level, $user_id );
 		}
@@ -330,13 +351,13 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			}
 
 			// Make sure that no PMPro pages are restricted.
-			$wpdb->query(
-				$wpdb->prepare(
+			$pmpro_page_ids = array_filter( array_map( 'intval', (array) $pmpro_pages ) );
+			if ( ! empty( $pmpro_page_ids ) ) {
+				$wpdb->query(
 					"DELETE FROM {$wpdb->prefix}pmpro_memberships_pages
-					WHERE page_id IN (%s)",
-					implode( ',', array_map( 'intval', $pmpro_pages ) )
-				)
-			);
+					WHERE page_id IN (" . implode( ',', $pmpro_page_ids ) . ')'
+				);
+			}
 			break;
 		case 'all':
 			// Run a single query to update all posts and pages.
@@ -351,13 +372,13 @@ function pmprompmt_migrate_content_restriction( $rule_id ) {
 			}
 
 			// Make sure that no PMPro pages are restricted.
-			$wpdb->query(
-				$wpdb->prepare(
+			$pmpro_page_ids = array_filter( array_map( 'intval', (array) $pmpro_pages ) );
+			if ( ! empty( $pmpro_page_ids ) ) {
+				$wpdb->query(
 					"DELETE FROM {$wpdb->prefix}pmpro_memberships_pages
-					WHERE page_id IN (%s)",
-					implode( ',', array_map( 'intval', $pmpro_pages ) )
-				)
-			);
+					WHERE page_id IN (" . implode( ',', $pmpro_page_ids ) . ')'
+				);
+			}
 			break;
 		case 'all_tax_category':
 		case 'all_tax_post_tag':

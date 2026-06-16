@@ -46,7 +46,7 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 			array(
 				'post_type' => 'memberpressproduct',
 				'posts_per_page' => -1,
-				'orderby' => 'id',
+				'orderby' => 'ID',
 				'order' => 'ASC',
 			)
 		);
@@ -58,11 +58,19 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 			wp_reset_postdata();
 		}
 
+		// If there are no MemberPress levels, there is nothing to migrate.
+		if ( empty( $mp_levels ) ) {
+			?>
+			<p><?php esc_html_e( 'No MemberPress levels found.', 'pmpro-memberpress-migration-toolkit' ); ?></p>
+			<?php
+			return;
+		}
+
 		// Get the current level mapping from options. MemberPress level ID => PMPro level ID.
 		$level_map = get_option( 'pmprompmt_level_map', array() );
 
-		// If there are MemberPress levels but no mapping yet, show a button to run the full migration.
-		if ( ! empty( $mp_levels ) && empty( $level_map ) ) {
+		// If there is no mapping yet, show a button to run the full migration.
+		if ( empty( $level_map ) ) {
 			?>
 			<h4><?php esc_html_e( 'What Will Be Migrated', 'pmpro-memberpress-migration-toolkit' ); ?></h4>
 			<ul>
@@ -106,7 +114,6 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 				?>
 			</p>
 
-			<?php wp_nonce_field( 'pmpro_memberpress_migration_toolkit_migrate_levels', 'pmpro_memberpress_migration_toolkit_migrate_levels_nonce' ); ?>
 			<button class="button button-primary" type="submit" name="level-step-action" value="migrate_levels"><?php esc_html_e( 'Migrate All Levels And Level Groups Now', 'pmpro-memberpress-migration-toolkit' ); ?></button>
 			<hr />
 			<a href="#" id="pmpro_memberpress_migration_show_manual_level_mapping"><?php esc_html_e( 'Or, map levels manually', 'pmpro-memberpress-migration-toolkit' ); ?></a>
@@ -122,9 +129,10 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 			<?php
 		}
 
-		// Show a manual level mapping form if there are MemberPress levels.
+		// Show a manual level mapping form. This is hidden until the "map levels manually"
+		// link is clicked unless a level map has already been saved.
 		?>
-		<div id='pmpro_memberpress_migration_level_mapping_div' style='<?php echo empty( $mp_levels ) || empty( $level_map ) ? 'display:none;' : ''; ?>'>
+		<div id='pmpro_memberpress_migration_level_mapping_div' style='<?php echo empty( $level_map ) ? 'display:none;' : ''; ?>'>
 				<table class="form-table">
 					<tr>
 						<th scope="row"><?php esc_html_e( 'MemberPress Level', 'pmpro-memberpress-migration-toolkit' ); ?></th>
@@ -135,40 +143,31 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 					$pmpro_levels = pmpro_getAllLevels( true );
 
 					// Loop through MemberPress levels and show a dropdown to map to PMPro levels.
-					if ( ! empty( $mp_levels ) ) {
-						foreach ( $mp_levels as $mp_level_id => $mp_level ) {
-							$mp_level_name = $mp_level->post_title;
-							?>
-							<tr>
-								<td><?php echo esc_html( $mp_level_name ); ?></td>
-								<td>
-									<select name="pmpro_mp_level_map[<?php echo esc_attr( $mp_level_id ); ?>]">
-										<option value=""><?php esc_html_e( 'Select PMPro Level', 'pmpro-memberpress-migration-toolkit' ); ?></option>
-										<?php
-										foreach ( $pmpro_levels as $level ) {
-											?>
-											<option value="<?php echo esc_attr( $level->id ); ?>" <?php selected( isset( $level_map[ $mp_level_id ] ) && $level_map[ $mp_level_id ] == $level->id ); ?>>
-												<?php echo esc_html( $level->name ); ?>
-											</option>
-											<?php
-										}
-										?>
-									</select>
-								</td>
-							</tr>
-							<?php
-						}
-					} else {
+					foreach ( $mp_levels as $mp_level_id => $mp_level ) {
+						$mp_level_name = $mp_level->post_title;
 						?>
 						<tr>
-							<td colspan="2"><?php esc_html_e( 'No MemberPress levels found.', 'pmpro-memberpress-migration-toolkit' ); ?></td>
+							<td><?php echo esc_html( $mp_level_name ); ?></td>
+							<td>
+								<select name="pmpro_mp_level_map[<?php echo esc_attr( $mp_level_id ); ?>]">
+									<option value=""><?php esc_html_e( 'Select PMPro Level', 'pmpro-memberpress-migration-toolkit' ); ?></option>
+									<?php
+									foreach ( $pmpro_levels as $level ) {
+										?>
+										<option value="<?php echo esc_attr( $level->id ); ?>" <?php selected( isset( $level_map[ $mp_level_id ] ) && $level_map[ $mp_level_id ] == $level->id ); ?>>
+											<?php echo esc_html( $level->name ); ?>
+										</option>
+										<?php
+									}
+									?>
+								</select>
+							</td>
 						</tr>
 						<?php
 					}
 					?>
 				</table>
 				<button class="button button-primary" type="submit" name="level-step-action" value="save_level_map"><?php esc_html_e( 'Save Level Map', 'pmpro-memberpress-migration-toolkit' ); ?></button>
-			</form>
 		</div>
 		<?php
 	}
@@ -195,7 +194,7 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 				array(
 					'post_type' => 'memberpressproduct',
 					'posts_per_page' => -1,
-					'orderby' => 'id',
+					'orderby' => 'ID',
 					'order' => 'ASC',
 				)
 			);
@@ -243,7 +242,7 @@ class PMProMPMT_Migration_Step_Levels extends PMProMPMT_Migration_Step {
 				array(
 					'post_type' => 'memberpressgroup',
 					'posts_per_page' => -1,
-					'orderby' => 'id',
+					'orderby' => 'ID',
 					'order' => 'ASC',
 				)
 			);

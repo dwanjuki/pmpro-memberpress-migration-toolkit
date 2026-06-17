@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-GPL--2.0%2B-red.svg?style=flat-square)
 
 ### Welcome to the MemberPress Migration Toolkit GitHub Repository
-Quickly search for members, orders, subscriptions, and more.
+Migrate your MemberPress members, subscriptions, levels, and content restrictions to Paid Memberships Pro with a guided step-by-step wizard.
 
 For more information please visit [www.paidmembershipspro.com/add-ons/pmpro-memberpress-migration-toolkit-add-on/](https://www.paidmembershipspro.com/add-ons/pmpro-memberpress-migration-toolkit-add-on/)
 
